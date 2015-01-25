@@ -1,0 +1,6 @@
+---
+sql_connection_uri: postgres://<%= node['gitrob']['database_user'] %>:<%= node['gitrob']['database_password'] %>@localhost:5432/<%= node['gitrob']['database'] %>
+github_access_tokens:
+<% node['gitrob']['tokens'].each do |token| %>
+- <%= token %>
+<% end %>
