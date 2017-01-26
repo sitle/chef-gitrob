@@ -16,12 +16,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+user node['gitrob']['database_user'] do
+  action :create
+  comment 'Gitrob User'
+  gid 'users'
+  home '/home/' + node['gitrob']['database_user']
+  shell '/bin/bash'
+  password node['gitrob']['database_password']
+  supports manage_home: true
+end
+
+sudo 'gitrob' do
+  user 'gitrob'
+  nopasswd true
+end
+
+include_recipe 'rvm::user'
 
 node.set['postgresql']['password']['postgres'] = node['gitrob']['pgsql_password']
-
-if node['gitrob']['accept_agreement'].nil?
-  fail 'You need to accept the agreement first !!!'
-end
 
 # install the database software
 include_recipe 'postgresql::server'
@@ -54,38 +66,6 @@ postgresql_database_user node['gitrob']['database_user'] do
   action :grant
 end
 
-%w(postgresql-server-dev-9.3 ruby-dev).each do |package|
-  package package do
-    action :install
-  end
-end
-
-user node['gitrob']['database_user'] do
-  action :create
-  comment 'Gitrob User'
-  gid 'users'
-  home '/home/' + node['gitrob']['database_user']
-  shell '/bin/bash'
-  password node['gitrob']['database_password']
-  supports manage_home: true
-end
-
-bash 'Install Gitrob' do
-  user 'root'
-  cwd '/tmp'
-  code <<-EOH
-  gem install gitrob -v #{node['gitrob']['version']} --no-ri --no-rdoc
-  chown -R #{node['gitrob']['database_user']} /var/lib/gems/1.9.1/gems/gitrob-#{node['gitrob']['version']}
-  EOH
-  not_if { ::File.exist?('/usr/local/bin/gitrob') }
-end
-
-execute 'Agreement set' do
-  command "echo user accepted > /var/lib/gems/1.9.1/gems/gitrob-#{node['gitrob']['version']}/agreement"
-  action :run
-  not_if { ::File.exist?("/var/lib/gems/1.9.1/gems/gitrob-#{node['gitrob']['version']}/agreement)") }
-end
-
 template '/home/' + node['gitrob']['database_user'] + '/.gitrobrc' do
   source 'gitrobrc.erb'
   owner node['gitrob']['database_user']
@@ -93,15 +73,16 @@ template '/home/' + node['gitrob']['database_user'] + '/.gitrobrc' do
   mode '0644'
 end
 
-node['gitrob']['organizations'].each do |organization|
-  execute 'Checking ' + organization do
-    command 'su ' + node['gitrob']['database_user'] + ' -c "gitrob -o ' + organization + ' --no-server"'
-    action :run
-    not_if node['gitrob']['enable_check']
-  end
-end
-
-execute 'Starting server...' do
-  command 'su ' + node['gitrob']['database_user'] + ' -c "gitrob -s -b ' + node['gitrob']['bind_address'] + '" &'
-  action :run
-end
+#
+#node['gitrob']['organizations'].each do |organization|
+#  execute 'Checking ' + organization do
+#    command 'su ' + node['gitrob']['database_user'] + ' -c "gitrob -o ' + organization + ' --no-server"'
+#    action :run
+#    not_if node['gitrob']['enable_check']
+#  end
+#end
+#
+#execute 'Starting server...' do
+#  command 'su ' + node['gitrob']['database_user'] + ' -c "gitrob -s -b ' + node['gitrob']['bind_address'] + '" &'
+#  action :run
+#end
