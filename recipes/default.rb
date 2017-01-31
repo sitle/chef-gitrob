@@ -26,12 +26,22 @@ user node['gitrob']['database_user'] do
   supports manage_home: true
 end
 
-sudo 'gitrob' do
-  user 'gitrob'
-  nopasswd true
+%w{ruby2.3 ruby2.3-dev}.each do |pkg|
+  package pkg
 end
 
-include_recipe 'rvm::user'
+gem_package 'github_api' do
+  version '0.13'
+end
+gem_package 'gitrob' do
+  version node['gitrob']['version']
+end
+
+execute 'gitrob_agree' do
+  command "echo user accepted > /var/lib/gems/2.3.0/gems/gitrob-#{node['gitrob']['version']}/agreement.txt"
+  action :run
+  not_if { ::File.exist?("/var/lib/gems/2.3.0/gems/gitrob-#{node['gitrob']['version']}/agreement.txt)") }
+end
 
 node.set['postgresql']['password']['postgres'] = node['gitrob']['pgsql_password']
 
@@ -72,17 +82,3 @@ template '/home/' + node['gitrob']['database_user'] + '/.gitrobrc' do
   group 'users'
   mode '0644'
 end
-
-#
-#node['gitrob']['organizations'].each do |organization|
-#  execute 'Checking ' + organization do
-#    command 'su ' + node['gitrob']['database_user'] + ' -c "gitrob -o ' + organization + ' --no-server"'
-#    action :run
-#    not_if node['gitrob']['enable_check']
-#  end
-#end
-#
-#execute 'Starting server...' do
-#  command 'su ' + node['gitrob']['database_user'] + ' -c "gitrob -s -b ' + node['gitrob']['bind_address'] + '" &'
-#  action :run
-#end

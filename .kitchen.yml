@@ -2,17 +2,10 @@
 driver_plugin: vagrant
 
 platforms:
-  - name: ubuntu
-    driver:
-      vagrantfile_erb: Vagrantfile.erb
-      box: ubuntu-14.04-chef
-      box_url: http://bit.ly/1qBrpXj
-      network:
-        - ['private_network', {ip: '172.28.128.13'}]
-      customize:
-        memory: 2048
-        cpus: 2
   - name: ubuntu-16.04
+    driver:
+      network:
+        - [ "forwarded_port", { guest: 9393, host: 9393 } ]
 
 provisioner:
   name: chef_solo
@@ -26,12 +19,5 @@ suites:
     attributes:
       rvm:
         user_installs:
-          - install_rubies: true
-            default_ruby: 2.3.0
+          - default_ruby: 2.3.0
             user: gitrob
-            gems:
-              default:
-                - name: github_api
-                  version: "0.12"
-                - name: gitrob
-                  version: "1.1.0"
