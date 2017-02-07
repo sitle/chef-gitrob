@@ -3,21 +3,11 @@ driver_plugin: vagrant
 
 platforms:
   - name: ubuntu-16.04
-    driver:
-      network:
-        - [ "forwarded_port", { guest: 9393, host: 9393 } ]
 
 provisioner:
   name: chef_solo
 
 suites:
   - name: default
-    data_bags_path: 'test/integration/default/data_bags'
-    encrypted_data_bag_secret_key_path: 'test/integration/default/encrypted_data_bag_secret'
     run_list:
       - recipe[gitrob::default]
-    attributes:
-      rvm:
-        user_installs:
-          - default_ruby: 2.3.0
-            user: gitrob

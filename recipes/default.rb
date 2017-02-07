@@ -82,3 +82,20 @@ template '/home/' + node['gitrob']['database_user'] + '/.gitrobrc' do
   group 'users'
   mode '0644'
 end
+
+systemd_service 'gitrob' do
+  description 'gitrob'
+  after %w{ network.target }
+  requires %w{ network.target }
+  user 'gitrob'
+  working_directory '/home/gitrob'
+  install do
+    wanted_by 'multi-user.target'
+  end
+  service do
+    type 'simple'
+    exec_start '/usr/local/bin/gitrob  server  --bind-address=0.0.0.0 --port=8080'
+    restart 'on-failure'
+    restart_sec '10'
+  end
+end
