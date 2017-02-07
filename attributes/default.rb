@@ -1,5 +1,5 @@
 
-default['gitrob']['version'] = '0.0.5'
+default['gitrob']['version'] = '1.1.0'
 default['gitrob']['accept_agreement'] = nil
 default['gitrob']['pgsql_password'] = 'password'
 default['gitrob']['database'] = 'gitrob'

@@ -8,4 +8,5 @@ version '0.1.0'
 
 depends 'apt'
 depends 'postgresql'
-depends 'database', '~>2.3.1'
+depends 'database'
+depends 'systemd'
